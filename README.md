@@ -1,115 +1,155 @@
 
-# n8n with PostgreSQL - Simple Setup Guide
+# n8n Docker Setup
 
-This guide helps you run **n8n** with a **PostgreSQL** database using Docker.
-
----
+This repository contains a complete Docker Compose setup for running n8n with PostgreSQL as the database backend.
 
 ## Prerequisites
 
-Before you start, make sure you have **one of the following installed** on your system:
+Before you begin, ensure you have the following installed:
 
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS / Linux)
-* or [Docker Engine](https://docs.docker.com/engine/install/) (Linux)
+- Docker
+- Docker Compose
 
-⚠️ Without Docker installed, the commands in this guide will not work.
+## Local Setup Instructions
 
----
+1. Clone this repository:
 
-## Quick Start
+   ```bash
+   git clone https://github.com/AlanAlvarez21/n8n-docker-setup.git
+   cd n8n-docker-setup
+   ```
+2. Copy the example environment file and update the values:
 
-### 1. Start the Services
+   ```bash
+   cp .env.example .env
+   # Edit .env file to change default passwords
+   ```
+3. Start the services:
 
-Run the following command in your terminal:
+   ```bash
+   ./manage.sh start
+   ```
+4. Access n8n at [http://localhost:5678](http://localhost:5678)
 
-**bash**
+## Deploying to a VPS (e.g., Render)
 
+To deploy n8n to a VPS platform like Render, follow these steps:
+
+### 1. Prepare Docker Image
+
+Build and push the Docker image to a container registry:
+
+```bash
+# Build the image for linux/amd64 platform
+docker build --platform linux/amd64 -t ghcr.io/your-username/n8n-app:latest .
+
+# Push to container registry
+docker push ghcr.io/your-username/n8n-app:latest
 ```
-./manage.sh start
+
+### 2. Deploy to Render
+
+You can deploy using either the Render Dashboard or the Render CLI:
+
+**Option A: Using Render Dashboard**
+
+1. Create a new Web Service on Render
+2. Connect your GitHub repository or use an existing Docker image
+3. Set the following environment variables:
+   - `N8N_PROTOCOL`: `https`
+   - `N8N_HOST`: `your-app-name.onrender.com`
+   - `N8N_PORT`: `5678`
+   - `N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS`: `true` (optional but recommended)
+
+**Option B: Using Render CLI**
+
+```bash
+# Install Render CLI
+brew install render
+
+# Login to Render
+render login
+
+# Deploy the service
+render services create --name n8n-app --type web
+
+# Deploy the image
+render deploys create YOUR_SERVICE_ID --image ghcr.io/your-username/n8n-app:latest
 ```
 
-This will start both PostgreSQL and n8n using Docker Compose.
+### 3. Configure Environment Variables
 
-### 2. Access n8n
+Set these essential environment variables in your VPS platform:
 
-Open your web browser and go to:
+- `N8N_PROTOCOL`: `https` (for HTTPS) or `http` (for HTTP)
+- `N8N_HOST`: Your domain or Render-provided URL
+- `N8N_PORT`: `5678`
+- `N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS`: `true`
 
-👉 [http://localhost:5678](http://localhost:5678/)
+### 4. Database Considerations
 
-### 3. Set Up Your Account
+For production deployments, consider using an external database:
 
-Fill in the form to create your owner (admin) account. This account has full access to your n8n instance.
+- Set up a PostgreSQL database on Render or another provider
+- Configure the following environment variables:
+  - `DB_TYPE`: `postgresdb`
+  - `DB_POSTGRESDB_HOST`: Database host
+  - `DB_POSTGRESDB_PORT`: Database port (usually 5432)
+  - `DB_POSTGRESDB_DATABASE`: Database name
+  - `DB_POSTGRESDB_USER`: Database user
+  - `DB_POSTGRESDB_PASSWORD`: Database password
 
----
+## Management Commands
 
-## Using Webhooks (e.g., Chat Feature)
+- Start services: `./manage.sh start`
+- Stop services: `./manage.sh stop`
+- View logs: `./manage.sh logs`
+- Restart services: `./manage.sh restart`
 
-Some features (like chat) require webhooks.
+## Webhooks
 
-1. **Make Your Workflow Active**
-   * Open the n8n interface
-   * Find the workflow you want to use
-   * Switch the "Active" toggle to ON (green)
-2. **Find Your Webhook URL**
-   * Open the workflow
-   * Click the Webhook node
-   * Copy the Production URL, e.g.:
-     **text**
+To use webhooks (like chat functionality):
 
-     ```
-     http://localhost:5678/webhook/8443e597-d4f1-485e-b8a8-3537e91a1ef5
-     ```
-3. **Use the Webhook**
-   * Share it with others, or
-   * Integrate it into another application
+1. Make sure your workflow is active (toggle in the top-right corner)
+2. Use the webhook URL provided in the Webhook node
 
----
+## Post-Deployment Steps
 
-## Common Tasks
+After successfully deploying n8n to your VPS:
 
-| Task             | Command                 |
-| ---------------- | ----------------------- |
-| Start n8n        | `./manage.sh start`   |
-| Stop n8n         | `./manage.sh stop`    |
-| Check Status     | `./manage.sh status`  |
-| View Logs        | `./manage.sh logs`    |
-| Restart Services | `./manage.sh restart` |
+1. **Access the Web Interface**
 
----
+   - Visit your deployed URL (e.g., https://your-app-name.onrender.com)
+   - Create your first user account
+2. **Configure Security**
 
-## Troubleshooting
+   - Set up user authentication
+   - Configure API credentials for third-party services
+   - Review and set appropriate permissions
+3. **Import/Export Workflows**
 
-### "Webhook not registered" Error
+   - Export existing workflows from local setup: `./export-workflows.sh`
+   - Import workflows to production environment: `./import-workflows.sh`
+   - Test all workflows to ensure they work correctly
+4. **Monitor and Maintain**
 
-* Go to [http://localhost:5678](http://localhost:5678/)
-* Open the workflow
-* Ensure the Active toggle is ON (green)
-* Save the workflow
+   - Regularly check logs for errors
+   - Monitor resource usage
+   - Keep n8n updated to the latest version
+   - Backup your workflows and credentials regularly
+5. **Scale as Needed**
 
-### Can't Access [http://localhost:5678](http://localhost:5678/)
+   - Monitor performance and adjust resources
+   - Consider using multiple instances for high availability
+   - Set up monitoring and alerting for critical workflows
 
-* Verify services are running: `./manage.sh start`
-* Make sure port 5678 isn't used by another app (`docker ps` or `lsof -i :5678`)
+## For Non-Engineers
 
-### Need More Help?
+If you're not an engineer but need to use this system, check out our simplified guide:
+[Non-Engineer Guide](README_NON_ENGINEERS.md)
 
-* View logs: `./manage.sh logs`
-* Restart everything: `./manage.sh restart`
+## Additional Resources
 
----
-
-## Important Notes
-
-* Your data is persisted in Docker volumes → safe to stop/start services
-* First startup may take a minute while containers initialize
-* Passwords and environment variables can be configured in the `.env` file
-
----
-
-## For Advanced Users
-
-* To customize database credentials or n8n settings, edit the `.env` file
-* For production use:
-  * Run behind a reverse proxy (Nginx/Traefik)
-  * Use a domain name (e.g., [n8n.mydomain.com](https://n8n.mydomain.com/))
-  * Enable HTTPS with Let's Encrypt certificates
+- [n8n Documentation](https://docs.n8n.io)
+- [Docker Documentation](https://docs.docker.com/)
+- [PostgreSQL Documentation](https://www.postgresql.org/docs/)

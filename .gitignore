@@ -1,0 +1,22 @@
+automation_blueprints/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Docker related
+docker-compose.override.yml
+.dockerignore
+
+# n8n data
+.n8n/
+*.n8n
+
+# Logs
+logs/
+*.log
+
+# Temp files
+tmp/
+temp/
