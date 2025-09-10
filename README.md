@@ -1,113 +1,115 @@
+
 # n8n with PostgreSQL - Simple Setup Guide
 
-This guide is designed for those who want to use n8n with PostgreSQL.
+This guide helps you run **n8n** with a **PostgreSQL** database using Docker.
+
+---
+
+## Prerequisites
+
+Before you start, make sure you have **one of the following installed** on your system:
+
+* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Windows / macOS / Linux)
+* or [Docker Engine](https://docs.docker.com/engine/install/) (Linux)
+
+⚠️ Without Docker installed, the commands in this guide will not work.
+
+---
 
 ## Quick Start
 
 ### 1. Start the Services
 
-Double-click on the `start-n8n` script or run this command in Terminal:
+Run the following command in your terminal:
 
-```bash
-
-./manage.sh start
+**bash**
 
 ```
+./manage.sh start
+```
+
+This will start both PostgreSQL and n8n using Docker Compose.
 
 ### 2. Access n8n
 
-Open your web browser and go to: http://localhost:5678
+Open your web browser and go to:
+
+👉 [http://localhost:5678](http://localhost:5678/)
 
 ### 3. Set Up Your Account
 
-- Create your owner account by filling in the form
-- This is your admin account for n8n
+Fill in the form to create your owner (admin) account. This account has full access to your n8n instance.
 
-## Using Webhooks (Like the Chat Feature)
+---
 
-If you want to use features like chat that require webhooks, follow these steps:
+## Using Webhooks (e.g., Chat Feature)
 
-### 1. Make Your Workflow Active
+Some features (like chat) require webhooks.
 
-In the n8n interface:
+1. **Make Your Workflow Active**
+   * Open the n8n interface
+   * Find the workflow you want to use
+   * Switch the "Active" toggle to ON (green)
+2. **Find Your Webhook URL**
+   * Open the workflow
+   * Click the Webhook node
+   * Copy the Production URL, e.g.:
+     **text**
 
-- Find the workflow you want to use
-- Look for the "Active" toggle in the top-right corner
-- Make sure it's turned ON (green color)
+     ```
+     http://localhost:5678/webhook/8443e597-d4f1-485e-b8a8-3537e91a1ef5
+     ```
+3. **Use the Webhook**
+   * Share it with others, or
+   * Integrate it into another application
 
-### 2. Find Your Webhook URL
-
-- Open the workflow
-- Click on the "Webhook" node
-- Copy the "Production URL" - it will look like:
-
-`http://localhost:5678/webhook/8443e597-d4f1-485e-b8a8-3537e91a1ef5`
-
-### 3. Use the Webhook
-
-You can now share this URL with others or use it in other applications.
+---
 
 ## Common Tasks
 
-### Starting n8n
+| Task             | Command                 |
+| ---------------- | ----------------------- |
+| Start n8n        | `./manage.sh start`   |
+| Stop n8n         | `./manage.sh stop`    |
+| Check Status     | `./manage.sh status`  |
+| View Logs        | `./manage.sh logs`    |
+| Restart Services | `./manage.sh restart` |
 
-```bash
-
-./manage.sh start
-
-```
-
-### Stopping n8n
-
-```bash
-
-./manage.sh stop
-
-```
-
-### Checking if n8n is Running
-
-```bash
-
-./manage.sh status
-
-```
-
-### Viewing Logs (for troubleshooting)
-
-```bash
-
-./manage.sh logs
-
-```
+---
 
 ## Troubleshooting
 
 ### "Webhook not registered" Error
 
-This is the most common issue. To fix it:
+* Go to [http://localhost:5678](http://localhost:5678/)
+* Open the workflow
+* Ensure the Active toggle is ON (green)
+* Save the workflow
 
-1. Go to http://localhost:5678
-2. Find your workflow
-3. Make sure the "Active" toggle is ON (green)
-4. Save the workflow
+### Can't Access [http://localhost:5678](http://localhost:5678/)
 
-### Can't Access http://localhost:5678
+* Verify services are running: `./manage.sh start`
+* Make sure port 5678 isn't used by another app (`docker ps` or `lsof -i :5678`)
 
-1. Make sure you started the services with `./manage.sh start`
-2. Check that port 5678 isn't being used by another application
+### Need More Help?
 
-### Need Help?
+* View logs: `./manage.sh logs`
+* Restart everything: `./manage.sh restart`
 
-- Check the logs: `./manage.sh logs`
-- Restart everything: `./manage.sh restart`
+---
 
 ## Important Notes
 
-- Your data is saved automatically
-- You can stop and start n8n safely - your workflows will still be there
-- The first time you run n8n, it might take a minute to start up
+* Your data is persisted in Docker volumes → safe to stop/start services
+* First startup may take a minute while containers initialize
+* Passwords and environment variables can be configured in the `.env` file
+
+---
 
 ## For Advanced Users
 
-If you need to change passwords or other settings, see the main README.md file.
+* To customize database credentials or n8n settings, edit the `.env` file
+* For production use:
+  * Run behind a reverse proxy (Nginx/Traefik)
+  * Use a domain name (e.g., [n8n.mydomain.com](https://n8n.mydomain.com/))
+  * Enable HTTPS with Let's Encrypt certificates
