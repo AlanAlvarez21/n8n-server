@@ -1,4 +1,5 @@
 automation_blueprints/
+automation_blueprints/
 
 # Environment files
 .env
