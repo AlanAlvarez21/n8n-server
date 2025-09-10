@@ -1,103 +1,33 @@
-
-# n8n Docker Setup
+# n8n Docker Setup with PostgreSQL
 
 This repository contains a complete Docker Compose setup for running n8n with PostgreSQL as the database backend.
 
 ## Prerequisites
 
 Before you begin, ensure you have the following installed:
-
 - Docker
 - Docker Compose
 
-## Local Setup Instructions
+## Setup Instructions
 
 1. Clone this repository:
-
    ```bash
-   git clone https://github.com/AlanAlvarez21/n8n-docker-setup.git
-   cd n8n-docker-setup
+   git clone https://github.com/AlanAlvarez21/n8n-docker-postgres.git
+   cd n8n-docker-postgres
    ```
-2. Copy the example environment file and update the values:
 
+2. Copy the example environment file and update the values:
    ```bash
    cp .env.example .env
    # Edit .env file to change default passwords
    ```
-3. Start the services:
 
+3. Start the services:
    ```bash
    ./manage.sh start
    ```
+
 4. Access n8n at [http://localhost:5678](http://localhost:5678)
-
-## Deploying to a VPS (e.g., Render)
-
-To deploy n8n to a VPS platform like Render, follow these steps:
-
-### 1. Prepare Docker Image
-
-Build and push the Docker image to a container registry:
-
-```bash
-# Build the image for linux/amd64 platform
-docker build --platform linux/amd64 -t ghcr.io/your-username/n8n-app:latest .
-
-# Push to container registry
-docker push ghcr.io/your-username/n8n-app:latest
-```
-
-### 2. Deploy to Render
-
-You can deploy using either the Render Dashboard or the Render CLI:
-
-**Option A: Using Render Dashboard**
-
-1. Create a new Web Service on Render
-2. Connect your GitHub repository or use an existing Docker image
-3. Set the following environment variables:
-   - `N8N_PROTOCOL`: `https`
-   - `N8N_HOST`: `your-app-name.onrender.com`
-   - `N8N_PORT`: `5678`
-   - `N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS`: `true` (optional but recommended)
-
-**Option B: Using Render CLI**
-
-```bash
-# Install Render CLI
-brew install render
-
-# Login to Render
-render login
-
-# Deploy the service
-render services create --name n8n-app --type web
-
-# Deploy the image
-render deploys create YOUR_SERVICE_ID --image ghcr.io/your-username/n8n-app:latest
-```
-
-### 3. Configure Environment Variables
-
-Set these essential environment variables in your VPS platform:
-
-- `N8N_PROTOCOL`: `https` (for HTTPS) or `http` (for HTTP)
-- `N8N_HOST`: Your domain or Render-provided URL
-- `N8N_PORT`: `5678`
-- `N8N_ENFORCE_SETTINGS_FILE_PERMISSIONS`: `true`
-
-### 4. Database Considerations
-
-For production deployments, consider using an external database:
-
-- Set up a PostgreSQL database on Render or another provider
-- Configure the following environment variables:
-  - `DB_TYPE`: `postgresdb`
-  - `DB_POSTGRESDB_HOST`: Database host
-  - `DB_POSTGRESDB_PORT`: Database port (usually 5432)
-  - `DB_POSTGRESDB_DATABASE`: Database name
-  - `DB_POSTGRESDB_USER`: Database user
-  - `DB_POSTGRESDB_PASSWORD`: Database password
 
 ## Management Commands
 
@@ -106,42 +36,53 @@ For production deployments, consider using an external database:
 - View logs: `./manage.sh logs`
 - Restart services: `./manage.sh restart`
 
+## Data Persistence and Backup
+
+This setup uses PostgreSQL as the database backend and Docker volumes for data persistence, which means your workflows and credentials will persist even if the containers are restarted or recreated.
+
+### License Persistence
+
+To persist your n8n license across container restarts, add your license key to the `.env` file as `N8N_LICENSE=your-license-key`. The license will then be passed to the container as an environment variable and will persist across container restarts.
+
+### Backup Your Workflows
+
+To create a backup of your workflows and credentials:
+
+```bash
+./backup-workflows.sh
+```
+
+This will create:
+- A PostgreSQL database dump in the `./backups` directory
+- JSON exports of workflows and credentials
+
+### Restore Your Workflows
+
+To restore from a backup:
+
+```bash
+./restore-workflows.sh <backup_timestamp>
+```
+
+For example:
+```bash
+./restore-workflows.sh 20251201_143022
+```
+
+### Scheduled Backups
+
+You can set up automatic daily backups by adding this to your crontab:
+
+```bash
+# Run daily backup at 2:00 AM
+0 2 * * * cd /path/to/n8n-docker-postgres && ./scheduled-backup.sh >> ./backups/backup.log 2>&1
+```
+
 ## Webhooks
 
 To use webhooks (like chat functionality):
-
 1. Make sure your workflow is active (toggle in the top-right corner)
 2. Use the webhook URL provided in the Webhook node
-
-## Post-Deployment Steps
-
-After successfully deploying n8n to your VPS:
-
-1. **Access the Web Interface**
-
-   - Visit your deployed URL (e.g., https://your-app-name.onrender.com)
-   - Create your first user account
-2. **Configure Security**
-
-   - Set up user authentication
-   - Configure API credentials for third-party services
-   - Review and set appropriate permissions
-3. **Import/Export Workflows**
-
-   - Export existing workflows from local setup: `./export-workflows.sh`
-   - Import workflows to production environment: `./import-workflows.sh`
-   - Test all workflows to ensure they work correctly
-4. **Monitor and Maintain**
-
-   - Regularly check logs for errors
-   - Monitor resource usage
-   - Keep n8n updated to the latest version
-   - Backup your workflows and credentials regularly
-5. **Scale as Needed**
-
-   - Monitor performance and adjust resources
-   - Consider using multiple instances for high availability
-   - Set up monitoring and alerting for critical workflows
 
 ## For Non-Engineers
 

@@ -37,6 +37,7 @@ services:
       N8N_PROTOCOL: http
       N8N_HOST: localhost
       N8N_PORT: 5678
+      N8N_LICENSE: ${N8N_LICENSE}
       # If is production enviroment:
       # N8N_WEBHOOK_URL=https://n8n.midominio.com/
       N8N_WEBHOOK_URL: http://localhost:5678/
